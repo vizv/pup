@@ -277,6 +277,15 @@ func jsonify(node *html.Node) map[string]interface{} {
 	for child := node.FirstChild; child != nil; child = child.NextSibling {
 		switch child.Type {
 		case html.ElementNode:
+			if child.DataAtom == atom.Br {
+				text := "\n"
+				currText, ok := vals["text"].(string)
+				if ok {
+					text = currText + text
+				}
+				vals["text"] = text
+				break
+			}
 			children = append(children, jsonify(child))
 		case html.TextNode:
 			text := strings.TrimSpace(child.Data)
@@ -288,9 +297,12 @@ func jsonify(node *html.Node) map[string]interface{} {
 					}
 				}
 				// if there is already text we'll append it
-				currText, ok := vals["text"]
+				currText, ok := vals["text"].(string)
 				if ok {
-					text = fmt.Sprintf("%s %s", currText, text)
+					if !strings.HasSuffix(currText, "\n") {
+						currText += " "
+					}
+					text = currText + text
 				}
 				vals["text"] = text
 			}
